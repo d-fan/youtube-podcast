@@ -1,4 +1,6 @@
 #!/usr/bin/python
+# flake8:noqa
+"""Youtube-podcast proxy."""
 
 from flask import Flask
 from sqlalchemy import create_engine
@@ -15,7 +17,9 @@ app = Flask(__name__)
 
 config = {}
 
-def LoadConfig(file_name):
+
+def load_config(file_name):
+    """Load config info into global var."""
     global config
     with open(file_name, "r") as input_file:
         config = yaml.load(input_file)
@@ -23,7 +27,7 @@ def LoadConfig(file_name):
         return
     print "Failed to load config"
     exit()
-LoadConfig("config.yml")
+load_config("config.yml")
 
 ###################
 # Database
@@ -36,7 +40,9 @@ db_session = scoped_session(sessionmaker(autocommit=False,
 Base = declarative_base()
 Base.query = db_session.query_property()
 
+
 def init_db():
+    """Initialize database."""
     # import all modules here that might define models so that
     # they will be registered properly on the metadata.  Otherwise
     # you will have to import them first before calling init_db()
@@ -47,8 +53,10 @@ def init_db():
 # Teardown
 ###################
 
+
 @app.teardown_appcontext
 def shutdown_session(exception=None):
+    """Gracefully disconnect from database."""
     db_session.remove()
 
 ##################
@@ -117,7 +125,7 @@ class Podcast(Base):
     id = Column(Integer, primary_key=True)
     video_id = Column(String(11), unique=True)
     ready = Column(Boolean())
-    
+
     title = Column(Text())
     description = Column(Text())
     channel_name = Column(Text())
@@ -212,7 +220,7 @@ episode_template = Template("""
     <title>{{ title }}</title>
     <description><![CDATA[{{ description }}]]></description>
     <pubDate>{{ date }}</pubDate>
-    <media:content url="http://192.168.0.100:5000/{{ file_path }}" type="audio/mpeg" />
+    <media:content url="http://192.168.0.100:8000/{{ file_path }}" type="audio/mpeg" />
     <media:description type="plain">{{ title }}</media:description>
     <itunes:duration>{{ length }}</itunes:duration>
     <itunes:summary><![CDATA[{{ description }}]]></itunes:summary>
@@ -220,7 +228,7 @@ episode_template = Template("""
     <itunes:explicit>no</itunes:explicit>
     <itunes:subtitle><![CDATA[{{ description }}]]></itunes:subtitle>
     <itunes:author>{{ channel_name }}</itunes:author>
-    <enclosure url="http://192.168.0.100:5000/{{ file_path }}" length="0" type="audio/mpeg" />
+    <enclosure url="http://192.168.0.100:8000/{{ file_path }}" length="0" type="audio/mpeg" />
 </item>
 """)
 
@@ -232,7 +240,7 @@ def get_podcasts(channel_name):
     print "Retrieving %s" % channel_name
     channel = Channel.query.filter(Channel.name == channel_name).first()
     if not channel:
-        abort(404) 
+        abort(404)
     channel.items = ''
     channel.now = str(datetime.now())
     podcast_list = Podcast.query.filter(Podcast.channel_name == channel.channel_id)

@@ -5,3 +5,4 @@ python-dateutil
 PyYAML
 SQLAlchemy
 youtube-dl
+unidecode
