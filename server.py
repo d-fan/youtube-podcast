@@ -58,9 +58,12 @@ def shutdown_session(exception=None):
 from apiclient.discovery import build
 from datetime import timedelta
 from dateutil import parser
+from pydub import AudioSegment
 from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean
+from unidecode import unidecode
 import pafy
 import re
+import time
 import os
 
 class Channel(Base):
@@ -131,14 +134,14 @@ class Podcast(Base):
         self.video_obj = pafy.new(self.video_id)
         self.audio_obj = self.video_obj.getbestaudio()
         self.thumb_url = self.video_obj.thumb
-    
+
         self.size = self.audio_obj.get_filesize()
         self.date = parser.parse(self.video_obj.published)
-        self.title = self.video_obj.title
+        self.title = unidecode(self.video_obj.title)
         self.length = self.video_obj.duration
-        self.file_path = "%s/%s.%s" % (channel_id, video_id, self.audio_obj.extension)
-        self.thumbnail = "%s/%s.jpg" % (channel_id, video_id)
-        self.description = self.video_obj.description.replace("\n", "<br/>")
+        self.file_path = "media/%s/%s.mp3" % (channel_id, video_id)
+        self.thumbnail = "media/%s/%s.jpg" % (channel_id, video_id)
+        self.description = unidecode(self.video_obj.description.replace("\n", "<br/>"))
 
     def download(self):
         if self.ready:
